@@ -1,0 +1,3 @@
+- 使用原生HTML与AJAX进行图片上传；
+- 使用AJAX时监听相关事件，实现上传进度可视化；
+- 后端采用express，由于express本身不支持文件上传所以用的multer 插件

@@ -1,0 +1,112 @@
+<head>
+	<title>异步文件上传</title>
+	<style>
+		ul{
+			padding:0;
+			margin:0;
+			list-style:"none";
+			margin-top:100px;
+		}
+		.progress-bar{
+			width:300px;
+			height:40px;
+			border:1px solid #666;
+			text-align:center;
+		}
+		.progress{
+			width:0%;
+			height:100%;
+			background-color:green
+		}
+		.error-info{
+			color:#333;
+		}
+	</style>
+</head>
+<body>
+	<div id='app'>
+		<!-- 
+			enctype默认为：application/x-www-form-urlencoded 【键值对编码(文本) -> post】
+			enctype:multipart/form-data (二进制 -> 同步上传 ->需要跳转)
+		 -->
+			  <input type='text' id='filename'></input><br />
+			  <input type='file' id='file' multiple></input><br />
+			  <!-- <input type='submit' value='提 交'></input> -->
+			  <span class="upload_error"></span>
+			  <ul class='progress-wrap'>
+				  <!-- 进度条 -->
+					<li class='progress-bar'>
+						
+					</li>
+			  </ul>
+	</div>
+</body>
+<script>
+var oFile  = document.getElementById('file'),
+	oSubmitBtn = document.getElementById('submitBtn'),
+	oProgressWrap = document.querySelector('.progress-wrap')
+	oFile.onchange= function(){
+
+		// console.log(oFile,oFile.files)
+		var files = oFile.files,
+			fileLen = files.length;
+
+			document.querySelector('.upload_error').innerHTML = ''
+			if(fileLen<=0){
+				console.log('你还没有选择图片')
+				return 
+			}
+			if(fileLen > 5){
+				console.log('最多可同时上传5张图片')
+				document.querySelector('.upload_error').innerHTML = '最多可同时上传5张图片'
+				return 
+			}
+		oProgressWrap.innerHTML = ''		
+		var fileName = '',
+			fileSize = 0,
+			maxSize = 1048576000000, //1024*1024 一兆
+			fd = null,
+			errorInfo=''
+ 		for(let i = 0;i<fileLen;i++){
+			fileName = files[i].name;
+			fileSize = files[i].size;
+			// console.log(/\.(gif|jpg|jpeg|png)$/.test(fileName))
+			if(!/\.(gif|jpg|jpeg|png)$/.test(fileName)){
+				//格式判断
+				//errorInfo=fileName+"文件不是图片类型"
+			}
+			if(fileSize > maxSize){
+				errorInfo=fileName+"超过可上传大小"
+			}
+			var oProgressBar = document.createElement('li');
+			oProgressBar.className = 'progress-bar';
+			oProgressWrap.appendChild(oProgressBar);
+			if(errorInfo !==''){
+				oProgressBar.innerHTML = '<span class="error-info">'+errorInfo+'</span>'
+			}else{
+				oProgressBar.innerHTML = '<div class="progress"></div>'
+				fd = new FormData();
+				//fd.append('后端的字段',value)
+				fd.append('file',files[i])
+				var o = window.XMLHttpRequest ? new window.XMLHttpRequest():new ActiveXObject('Microsoft.XMLHTTP');
+				o.open('post','/files');
+				//控制进度条
+				o.upload.onprogress = function(e){
+						//e.total 表示整个的字节数
+						//e.loaded 表示上传的字节数
+						// console.log(i)
+					var e = e || window.event,
+					percent = e.loaded / e.total * 100  +'%'
+							// thisProgressBar = oProgressWrap.querySelector('.progress-bar');
+							// thisProgressBar.querySelector('.progress').style.width = percent
+						    thisProgressBar = oProgressWrap.getElementsByClassName('progress-bar')[i];
+							// console.log(thisProgressBar)
+							thisProgressBar.getElementsByClassName('progress')[0].style.width = percent;
+				}		
+				//发送
+				o.send(fd);
+			}
+
+		}
+	}
+</script>
