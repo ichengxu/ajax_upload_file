@@ -1,0 +1,244 @@
+<head>
+	<title>腾讯视频上传</title>
+	<meta charset="UTF-8">
+	<link rel='stylesheet' href='http://at.alicdn.com/t/font_1983689_vlr9i5tvb5c.css' />
+	<style>
+		body{
+			height:100%;
+			margin:0;
+		}
+		a{
+			text-decoration: none;
+			color:white;
+		}
+		.upload-mod-wrap{
+			position:fixed;
+			top:0;
+			left:0;
+			width:100%;
+			height:100%;
+			background:rgba(0,0,0,.6);
+		}
+		.upload-mod{
+			position:absolute;
+			left:50%;
+			top:50%;
+			margin-left:-245px;
+			margin-top:-150px;
+			width:490px;
+			height:300px;
+			background:#fff;
+			border-radius:5px;
+			overflow:hidden;
+		}
+		.upload-mod .mod-hd{
+			height:30px;
+			background:#039ae3;
+		}
+		.upload-mod .upload-ctn{
+			height:188px;
+			margin-top:14px;
+			/* border:1px solid #000; */
+		}
+		.times{
+		   position:absolute;
+		   top:6px;
+		   right:10px;		
+		}
+		.upload-mod .upload-area{
+			position:relative;
+			width:160px;
+			height:120px;
+			/* border:1px solid #000; */
+			margin:0 auto;
+			background-image:url('./images/bg.png');
+			background-size:480px 260px;
+		}
+		.upload-mod .upload-area.btn{
+			background-position: 0 0;
+		}
+		.upload-mod .upload-area.uploading {
+			background-position: -160px 0;
+		}
+		.upload-mod .upload-area .upload-info{
+			position: absolute;
+			top: 27px;
+			left: 10px;
+			z-index: 3;
+			width: 140px;
+			height: 64px;
+			text-align: center;
+			line-height: 64px;
+			font-weight: bold;
+		}
+		.upload-mod .upload-area .upload-info .upload-success{
+			display: none;
+			color: #424242;
+			font-weight: normal;
+		}
+
+		.upload-mod .upload-area .upload-info .upload-success .fa{
+				color: #5E9030;
+		}
+
+		.upload-mod .upload-area .percent{
+				display: none;
+		}
+
+		.upload-mod .upload-area.uploading .percent{
+				display: inline;
+		}
+
+		.upload-mod .upload-area.uploading.finished .percent{
+				display: none;
+		}
+
+		.upload-mod .upload-area.uploading.finished .upload-success{
+				display: block;
+		}
+
+		.upload-mod .upload-area .progress-bar{
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 2;
+				width: 0;
+				height: 100%;
+				background-image: url(./images/bg.png);
+				background-size: 480px 260px;
+				background-repeat: no-repeat;
+				background-position: -320px 0;
+		}
+
+		.upload-mod .upload-area.btn .upload-input{
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 4;
+				width: 100%;
+				height: 100%;
+		}
+
+		.upload-mod .upload-area .upload-input{
+				display: none;
+		}
+
+		.upload-mod .upload-area .upload-input .input-label{
+				display: block;
+				height: 100%;
+				cursor: pointer;
+		}
+		.upload-mod .upload-area .upload-input input{
+				position: absolute;
+				top: 0;
+				left: 0;
+				visibility: hidden;
+		}
+	</style>
+</head>
+<body>
+	<div class='upload-mod-wrap js-upload-mod'>
+		<div class="upload-mod">
+			<div class="mod-hd">
+				<a href='javascript:;' class='iconfont icon-times times js-close-mod-btn'  ></a>
+			</div>
+			<div class='upload-ctn'> 
+				<div class='upload-area js-upload-area btn'> 
+					<div class="upload-info">
+						<span class="percent js-percent">0.0%</span>
+						<span class="upload-success"><i class="iconfont icon-checkcircle"></i> 上传成功</span>
+					</div>
+					<div class="progress-bar js-progress-bar"></div>
+					<div class="upload-input">
+						<label for="js-video-file" class="input-label"></label>
+						<input type="file" id="js-video-file" />
+					</div>
+				</div>	
+			</div>	
+		</div>
+	</div>
+		<a href="javascript:;" class="js-open-mod-btn">上传视频</a>
+</body>
+<script>
+;(function(doc){
+  var oOpenModBtn = doc.getElementsByClassName('js-open-mod-btn')[0],
+      oCloseModBtn = doc.getElementsByClassName('js-close-mod-btn')[0],
+      oUploadMod = doc.getElementsByClassName('js-upload-mod')[0],
+      oUploadArea = oUploadMod.getElementsByClassName('js-upload-area')[0],
+      oProgressBar = oUploadArea.getElementsByClassName('js-progress-bar')[0],
+      oPercent = oUploadArea.getElementsByClassName('js-percent')[0],
+      oVideoInput = doc.getElementById('js-video-file'),
+      maxSize = 3221225472;
+
+
+  var init = function(){
+    bindEvent();
+  }
+
+  function bindEvent(){
+    oOpenModBtn.addEventListener('click', showModal.bind(null, true), false);
+    oCloseModBtn.addEventListener('click', showModal.bind(null, false), false);
+    oVideoInput.addEventListener('change', uploadFile, false);
+  }
+  
+  function showModal(show){
+    if(show){
+      oUploadMod.className += ' show';
+    }else{
+    	oUploadMod.className = 'upload-mod-wrap js-upload-mod';
+    }
+  }
+
+  function uploadFile(){
+  	var oFile = this.files[0],
+  	    fileLen = oFile.length,
+  	    fileName = oFile.name,
+  	    fileSize = oFile.size;
+
+  	if(oFile > 1){
+  		console.log('一次只可上传一个视频');
+  		return;
+  	}
+
+    if(!/\.(mp4)$/.test(fileName)){
+    	console.log('您上传的『'+ fileName +'』文件不是MP4视频格式');
+    	return;
+    }
+
+    if(fileSize > maxSize){
+    	console.log('您上传的『'+ fileName +'』文件超出可上传的文件大小');
+    	return;
+    }
+    doUpload(oFile);
+  }
+
+  function doUpload(file){
+    var fd = new FormData();
+    fd.append('file', file);
+
+    var o = window.XMLHttpRequest ? 
+		        new window.XMLHttpRequest() :
+		        new ActiveXObject('Microsoft.XMLHTTP');
+
+		o.open('post', '/files');
+
+		oUploadArea.className = 'upload-area js-upload-area uploading';
+		o.upload.onprogress = function(e){
+			var e = e || window.event;
+      oProgressBar.style.width = e.loaded / e.total * 100 + '%';
+      oPercent.innerHTML = (e.loaded / e.total * 100).toFixed(1) + '%';
+		}
+
+		o.upload.onload = function(){
+			oUploadArea.className = 'upload-area js-upload-area uploading finished';
+			oPercent.innerHTML = '0.0%';
+		}
+
+		o.send(fd);
+  }
+
+  init();
+
+})(document);
+</script>

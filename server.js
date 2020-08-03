@@ -26,9 +26,13 @@ const multerInstance = multer({
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use(express.static("public"))
 
 app.get('/', function getIndexHtml (req, res, next) {
   res.sendFile(resolvePath('index.html'))
+})
+app.get('/tx', function getIndexHtml (req, res, next) {
+  res.sendFile(resolvePath('tx_upload.html'))
 })
 
 app.post('/files', multerInstance.any(), function filesUpload (req, res, next) {
